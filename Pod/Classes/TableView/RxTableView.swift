@@ -5,20 +5,22 @@ import RxCocoa
 public class RxTableView: NSObject,
     UITableViewDelegate,
     UITableViewDataSource,
-UIScrollViewDelegate {
+    UIScrollViewDelegate {
     
-    private let kDEFAULT_REUSE_ID: String = "RxTableView_ID"
-    private let kDEFAULT_ROW_HEIGHT: CGFloat = 44
+    let kDEFAULT_REUSE_ID = "RxTableView_ID"
+    let kDEFAULT_ROW_HEIGHT: CGFloat = 44
     
-    private var table: UITableView?
-    private var estimatedRowHeight: CGFloat?
-    private var modelToRow: [String : RxRow] = [:]
-    private var clicks: [String : (IndexPath, Any) -> Void] = [:]
+    var table: UITableView?
+    
+    var estimatedRowHeight: CGFloat?
+    var modelToRow: [String : RxRow] = [:]
+    var clicks: [String : (IndexPath, Any) -> Void] = [:]
+    var reachEnd: (() -> Void)?
+    
     private var data: [Any] = []
-    private var reachEnd: (() -> Void)?
     
     override init () {
-        //
+        // do nothing
     }
     
     init (table: UITableView) {
@@ -33,128 +35,6 @@ UIScrollViewDelegate {
         self.table = table
         return self
     }
-    
-    ////////////////////////////////////////////////////////////////////////////
-    // Estimate full table height
-    ////////////////////////////////////////////////////////////////////////////
-    
-    public func set(estimatedRowHeight height: CGFloat) -> RxTableView {
-        
-        estimatedRowHeight = height
-        
-        if let h = estimatedRowHeight, let table = table {
-            table.estimatedRowHeight = h
-            table.rowHeight = UITableViewAutomaticDimension
-        }
-        
-        return self
-    }
-    
-    ////////////////////////////////////////////////////////////////////////////
-    // Customize Row
-    ////////////////////////////////////////////////////////////////////////////
-    
-    public func customise <Row: UITableViewCell, Model> (rowForReuseIdentifier identifier: String,
-                           _ callback: @escaping (IndexPath, Row, Model) -> Void) -> RxTableView {
-        
-        return customise(rowForReuseIdentifier: identifier,
-                         withNibName: nil,
-                         andType: Row.self,
-                         andHeight: nil,
-                         representedByModelOfType: Model.self,
-                         customisedBy: callback)
-    }
-    
-    public func customise <Row: UITableViewCell, Model> (rowForReuseIdentifier identifier: String,
-                           andHeight height: CGFloat?,
-                           _ callback: @escaping (IndexPath, Row, Model) -> Void) -> RxTableView {
-        
-        return customise(rowForReuseIdentifier: identifier,
-                         withNibName: nil,
-                         andType: Row.self,
-                         andHeight: height,
-                         representedByModelOfType: Model.self,
-                         customisedBy: callback)
-    }
-    
-    public func customise <Row: UITableViewCell, Model> (rowForReuseIdentifier identifier: String,
-                           withNibName nibName: String?,
-                           _ callback: @escaping (IndexPath, Row, Model) -> Void) -> RxTableView {
-        
-        return customise(rowForReuseIdentifier: identifier,
-                         withNibName: nibName,
-                         andType: Row.self,
-                         andHeight: nil,
-                         representedByModelOfType: Model.self,
-                         customisedBy: callback)
-    }
-    
-    public func customise <Row: UITableViewCell, Model> (rowForReuseIdentifier identifier: String,
-                           withNibName nibName: String?,
-                           andHeight height: CGFloat?,
-                           _ callback: @escaping (IndexPath, Row, Model) -> Void) -> RxTableView {
-        
-        return customise(rowForReuseIdentifier: identifier,
-                         withNibName: nibName,
-                         andType: Row.self,
-                         andHeight: height,
-                         representedByModelOfType: Model.self,
-                         customisedBy: callback)
-    }
-    
-    private func customise <Row: UITableViewCell, Model> (rowForReuseIdentifier identifier: String,
-                            withNibName nibName: String?,
-                            andType rowType: Row.Type,
-                            andHeight height: CGFloat?,
-                            representedByModelOfType modelType: Model.Type,
-                            customisedBy callback: @escaping (IndexPath, Row, Model) -> Void) -> RxTableView {
-        
-        if let nib = nibName {
-            table?.register(UINib(nibName: nib, bundle: nil), forCellReuseIdentifier: identifier)
-        }
-        
-        var row = RxRow()
-        row.identifier = identifier
-        row.height = height ?? (estimatedRowHeight ?? kDEFAULT_ROW_HEIGHT)
-        row.customise = { i, cell, model in
-            if let c = cell as? Row, let m = model as? Model  {
-                callback (i, c, m)
-            }
-        }
-        
-        let key = String(describing: modelType)
-        modelToRow[key] = row
-        
-        
-        return self
-    }
-    
-    ////////////////////////////////////////////////////////////////////////////
-    // Row Clicks
-    ////////////////////////////////////////////////////////////////////////////
-    
-    public func did <Model> (clickOnRowWithReuseIdentifier identifier: String,
-                     _ action: @escaping (IndexPath, Model) -> Void) -> RxTableView {
-        
-        
-        let key = String(describing: Model.self)
-        clicks[key] = { index, model in
-            if let m = model as? Model {
-                action (index, m)
-            }
-        }
-        
-        return self
-    }
-    
-    public func did (reachEnd action: @escaping () -> Void) -> RxTableView {
-        reachEnd = action
-        return self
-    }
-    
-    ////////////////////////////////////////////////////////////////////////////
-    // Final Update method
-    ////////////////////////////////////////////////////////////////////////////
     
     public func update (withData data: [Any])  {
         
@@ -230,7 +110,7 @@ UIScrollViewDelegate {
     
 }
 
-private struct RxRow  {
+struct RxRow  {
     var identifier: String?
     var height: CGFloat?
     var customise: ((IndexPath, UITableViewCell, Any) -> Void)?

@@ -6,22 +6,23 @@ public class RxCollectionView: NSObject,
     UICollectionViewDelegate,
     UICollectionViewDataSource,
     UICollectionViewDelegateFlowLayout,
-UIScrollViewDelegate {
+    UIScrollViewDelegate {
     
-    private let kDEFAULT_REUSE_ID: String = "RxCollectionView_ID"
-    private let kDEFAULT_CELL_SIZE: CGSize = CGSize(width: 50, height: 50)
-    private let kDEFAULT_EDGE_INSETS: UIEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 0)
+    let kDEFAULT_REUSE_ID = "RxCollectionView_ID"
+    let kDEFAULT_CELL_SIZE = CGSize(width: 50, height: 50)
+    let kDEFAULT_EDGE_INSETS = UIEdgeInsetsMake(0, 0, 0, 0)
     
-    private var edgeIndsets: UIEdgeInsets?
-    private var cellSize: CGSize?
+    var collectionView: UICollectionView?
+    
+    var edgeIndsets: UIEdgeInsets?
+    var cellSize: CGSize?
+    
+    var modelToRow: [String : RxCell] = [:]
+    var clicks: [String : (IndexPath, Any) -> Void] = [:]
+    var reachEnd: (() -> Void)?
     
     private var data: [Any] = []
     
-    private var modelToRow: [String : RxCell] = [:]
-    private var clicks: [String : (IndexPath, Any) -> Void] = [:]
-    private var reachEnd: (() -> Void)?
-    
-    private var collectionView: UICollectionView?
     
     override init () {
         // do nothing
@@ -40,101 +41,6 @@ UIScrollViewDelegate {
         return self
     }
     
-    ////////////////////////////////////////////////////////////////////////////
-    // Set Cell Size
-    ////////////////////////////////////////////////////////////////////////////
-    
-    public func set(cellSize size: CGSize) -> RxCollectionView {
-        self.cellSize = size
-        return self
-    }
-    
-    public func set(cellWidth width: Int, andHeight height: Int) -> RxCollectionView {
-        self.cellSize = CGSize(width: width, height: height)
-        return self
-    }
-    
-    public func set(edgeInsets insets: UIEdgeInsets) -> RxCollectionView {
-        self.edgeIndsets = insets
-        return self
-    }
-    
-    ////////////////////////////////////////////////////////////////////////////
-    // Customize Row
-    ////////////////////////////////////////////////////////////////////////////
-    
-    public func customise <Cell: UICollectionViewCell, Model> (cellForReuseIdentifier identifier: String,
-                           _ callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
-        
-        return customise(cellForReuseIdentifier: identifier,
-                         withNibName: nil,
-                         andType: Cell.self,
-                         representedByModelOfType: Model.self,
-                         customisedBy: callback)
-    }
-    
-    public func customise <Cell: UICollectionViewCell, Model> (cellForReuseIdentifier identifier: String,
-                           withNibName nibName: String,
-                           _ callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
-        
-        return customise(cellForReuseIdentifier: identifier,
-                         withNibName: nibName,
-                         andType: Cell.self,
-                         representedByModelOfType: Model.self,
-                         customisedBy: callback)
-    }
-    
-    private func customise <Cell: UICollectionViewCell, Model> (cellForReuseIdentifier identifier: String,
-                            withNibName nibName: String?,
-                            andType cellType: Cell.Type,
-                            representedByModelOfType modelType: Model.Type,
-                            customisedBy callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
-        
-        if let nib = nibName {
-            collectionView?.register(UINib(nibName: nib, bundle: nil), forCellWithReuseIdentifier: identifier)
-        }
-        
-        var row = RxCell()
-        row.identifier = identifier
-        row.customise = { i, cell, model in
-            if let c = cell as? Cell, let m = model as? Model  {
-                callback (i, c, m)
-            }
-        }
-        
-        let key = String(describing: modelType)
-        modelToRow[key] = row
-        
-        return self
-    }
-    
-    ////////////////////////////////////////////////////////////////////////////
-    // On Methods
-    ////////////////////////////////////////////////////////////////////////////
-    
-    public func did <Model> (clickOnCellWithReuseIdentifier identifier: String,
-                     _ action: @escaping (IndexPath, Model) -> Void) -> RxCollectionView {
-        
-        let key = String(describing: Model.self)
-        clicks[key] = { index, model in
-            if let m = model as? Model {
-                action (index, m)
-            }
-        }
-        
-        return self
-    }
-    
-    public func did (reachEnd action: @escaping () -> Void) -> RxCollectionView {
-        reachEnd = action
-        return self
-    }
-    
-    
-    ////////////////////////////////////////////////////////////////////////////
-    // Final Update method
-    ////////////////////////////////////////////////////////////////////////////
-    
     public func update (withData data: [Any])  {
         
         collectionView?.delegate = self
@@ -149,7 +55,7 @@ UIScrollViewDelegate {
     }
     
     ////////////////////////////////////////////////////////////////////////////
-    // Collection View Delegate
+    // Collection View Delegate, Data Source & Scroll View
     ////////////////////////////////////////////////////////////////////////////
     
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -208,7 +114,7 @@ UIScrollViewDelegate {
     }
 }
 
-private struct RxCell  {
+struct RxCell  {
     var identifier: String?
     var customise: ((IndexPath, UICollectionViewCell, Any) -> Void)?
 }
