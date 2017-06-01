@@ -22,6 +22,7 @@ public class RxCollectionView: NSObject,
     var reachEnd: (() -> Void)?
     
     private var data: [Any] = []
+    private var isEmpty = false
     
     
     override init () {
@@ -51,6 +52,11 @@ public class RxCollectionView: NSObject,
             return self.modelToRow[key] != nil
         }
         
+        if self.data.count == 0, let _ = modelToRow["CellEmptyModel"] {
+            self.data = [CellEmptyModel()]
+            self.isEmpty = true
+        }
+        
         self.collectionView?.reloadData()
     }
     
@@ -77,7 +83,17 @@ public class RxCollectionView: NSObject,
     }
     
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return cellSize ?? kDEFAULT_CELL_SIZE
+        
+        if !isEmpty {
+            return cellSize ?? kDEFAULT_CELL_SIZE
+        } else {
+            let max = collectionView.frame.size
+            let insets = edgeIndsets ?? kDEFAULT_EDGE_INSETS
+            return CGSize(
+                width: max.width - insets.left - insets.right,
+                height: max.height - insets.top - insets.bottom
+            )
+        }
     }
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -117,4 +133,8 @@ public class RxCollectionView: NSObject,
 struct RxCell  {
     var identifier: String?
     var customise: ((IndexPath, UICollectionViewCell, Any) -> Void)?
+}
+
+public class CellEmptyModel {
+    // 
 }

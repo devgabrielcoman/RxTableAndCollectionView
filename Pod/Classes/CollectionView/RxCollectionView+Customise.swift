@@ -3,7 +3,7 @@ import UIKit
 public extension RxCollectionView {
     
     public func customise <Cell: UICollectionViewCell, Model> (cellForReuseIdentifier identifier: String,
-                           _ callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
+                                                                _ callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
         
         return customise(cellForReuseIdentifier: identifier,
                          withNibName: nil,
@@ -13,8 +13,8 @@ public extension RxCollectionView {
     }
     
     public func customise <Cell: UICollectionViewCell, Model> (cellForReuseIdentifier identifier: String,
-                           withNibName nibName: String,
-                           _ callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
+                                                                withNibName nibName: String,
+                                                                _ callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
         
         return customise(cellForReuseIdentifier: identifier,
                          withNibName: nibName,
@@ -23,11 +23,11 @@ public extension RxCollectionView {
                          customisedBy: callback)
     }
     
-    private func customise <Cell: UICollectionViewCell, Model> (cellForReuseIdentifier identifier: String,
-                            withNibName nibName: String?,
-                            andType cellType: Cell.Type,
-                            representedByModelOfType modelType: Model.Type,
-                            customisedBy callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
+    func customise <Cell: UICollectionViewCell, Model> (cellForReuseIdentifier identifier: String,
+                                                        withNibName nibName: String?,
+                                                        andType cellType: Cell.Type,
+                                                        representedByModelOfType modelType: Model.Type,
+                                                        customisedBy callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
         
         if let nib = nibName {
             collectionView?.register(UINib(nibName: nib, bundle: nil), forCellWithReuseIdentifier: identifier)

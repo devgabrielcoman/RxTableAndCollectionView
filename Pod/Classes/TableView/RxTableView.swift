@@ -18,6 +18,7 @@ public class RxTableView: NSObject,
     var reachEnd: (() -> Void)?
     
     private var data: [Any] = []
+    private var isEmpty = false
     
     override init () {
         // do nothing
@@ -46,6 +47,11 @@ public class RxTableView: NSObject,
             return self.modelToRow[key] != nil
         }
         
+        if self.data.count == 0, let _ = modelToRow["RowEmptyModel"] {
+            self.data = [RowEmptyModel()]
+            self.isEmpty = true
+        }
+        
         self.table?.reloadData()
     }
     
@@ -59,17 +65,21 @@ public class RxTableView: NSObject,
     
     public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         
-        if estimatedRowHeight != nil {
-            return UITableViewAutomaticDimension
-        }
-        else {
-            
-            let item = data[indexPath.row]
-            let key = String(describing: type(of: item))
-            let row = modelToRow [key]
-            let height = row?.height ?? kDEFAULT_ROW_HEIGHT
-            
-            return height
+        if !isEmpty {
+            if estimatedRowHeight != nil {
+                return UITableViewAutomaticDimension
+            }
+            else {
+                
+                let item = data[indexPath.row]
+                let key = String(describing: type(of: item))
+                let row = modelToRow [key]
+                let height = row?.height ?? kDEFAULT_ROW_HEIGHT
+                
+                return height
+            }
+        } else {
+            return tableView.frame.size.height
         }
     }
     
@@ -114,4 +124,8 @@ struct RxRow  {
     var identifier: String?
     var height: CGFloat?
     var customise: ((IndexPath, UITableViewCell, Any) -> Void)?
+}
+
+public class RowEmptyModel {
+    //
 }
