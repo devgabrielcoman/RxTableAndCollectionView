@@ -13,8 +13,17 @@ public extension RxCollectionView {
     }
     
     public func set(edgeInsets insets: UIEdgeInsets) -> RxCollectionView {
-        self.edgeIndsets = insets
+        self.edgeInsets = insets
         return self
     }
     
+    public func set(edgeInsetsForEmptyDataSet insets: UIEdgeInsets) -> RxCollectionView {
+        self.edgeInsetsForEmpty = insets
+        return self
+    }
+    
+    public func set(shouldCenterCellWithOneElement should: Bool) -> RxCollectionView {
+        self.centerWithOneElement = should
+        return self
+    }
 }

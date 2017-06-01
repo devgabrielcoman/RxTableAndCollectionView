@@ -14,7 +14,8 @@ public class RxCollectionView: NSObject,
     
     var collectionView: UICollectionView?
     
-    var edgeIndsets: UIEdgeInsets?
+    var edgeInsets: UIEdgeInsets?
+    var edgeInsetsForEmpty: UIEdgeInsets?
     var cellSize: CGSize?
     
     var modelToRow: [String : RxCell] = [:]
@@ -23,7 +24,7 @@ public class RxCollectionView: NSObject,
     
     private var data: [Any] = []
     private var isEmpty = false
-    
+    var centerWithOneElement = false
     
     override init () {
         // do nothing
@@ -88,7 +89,7 @@ public class RxCollectionView: NSObject,
             return cellSize ?? kDEFAULT_CELL_SIZE
         } else {
             let max = collectionView.frame.size
-            let insets = edgeIndsets ?? kDEFAULT_EDGE_INSETS
+            let insets = edgeInsetsForEmpty ?? kDEFAULT_EDGE_INSETS
             return CGSize(
                 width: max.width - insets.left - insets.right,
                 height: max.height - insets.top - insets.bottom
@@ -105,7 +106,20 @@ public class RxCollectionView: NSObject,
     }
     
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return edgeIndsets ?? kDEFAULT_EDGE_INSETS
+        if !isEmpty {
+            if data.count == 1 && centerWithOneElement {
+                let w = collectionView.frame.size.width
+                let h = collectionView.frame.size.height
+                let size = cellSize ?? kDEFAULT_CELL_SIZE
+                let insetHorz = ((w - CGFloat(size.width)) / 4)
+                let insetVert = ((h - CGFloat(size.height)) / 2)
+                return UIEdgeInsets(top: insetVert, left: insetHorz, bottom: 0, right: insetHorz)
+            } else {
+                return edgeInsets ?? kDEFAULT_EDGE_INSETS
+            }
+        } else {
+            return edgeInsetsForEmpty ?? kDEFAULT_EDGE_INSETS
+        }
     }
     
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
