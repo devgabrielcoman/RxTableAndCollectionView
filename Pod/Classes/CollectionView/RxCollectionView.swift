@@ -14,18 +14,15 @@ public class RxCollectionView: NSObject,
     
     var collectionView: UICollectionView?
     
-    var edgeInsets: UIEdgeInsets?
-    var edgeInsetsForEmpty: UIEdgeInsets?
-    var cellSize: CGSize?
-    
     var modelToRow: [String : RxCell] = [:]
     var clicks: [String : (IndexPath, Any) -> Void] = [:]
+    var sizes: [String : (IndexPath, Any) -> CGSize] = [:]
+    var insets: ((Int) -> UIEdgeInsets)?
+    
     var reachEnd: (() -> Void)?
     
     private var data: [Any] = []
-    private var isEmpty = false
-    var centerWithOneElement = false
-    
+
     override init () {
         // do nothing
     }
@@ -51,11 +48,6 @@ public class RxCollectionView: NSObject,
         self.data = data.filter { element -> Bool in
             let key = String(describing: type(of: element))
             return self.modelToRow[key] != nil
-        }
-        
-        if self.data.count == 0, let _ = modelToRow["CellEmptyModel"] {
-            self.data = [CellEmptyModel()]
-            self.isEmpty = true
         }
         
         self.collectionView?.reloadData()
@@ -84,42 +76,21 @@ public class RxCollectionView: NSObject,
     }
     
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
-        if !isEmpty {
-            return cellSize ?? kDEFAULT_CELL_SIZE
-        } else {
-            let max = collectionView.frame.size
-            let insets = edgeInsetsForEmpty ?? kDEFAULT_EDGE_INSETS
-            return CGSize(
-                width: max.width - insets.left - insets.right,
-                height: max.height - insets.top - insets.bottom
-            )
-        }
+        let item = data[indexPath.row]
+        let key = String(describing: type(of: item))
+        let size = sizes[key]
+        return size? (indexPath, item) ?? kDEFAULT_CELL_SIZE
     }
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let item = data[indexPath.row]
         let key = String(describing: type(of: item))
         let click = clicks[key]
-        
         click? (indexPath, item)
     }
     
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        if !isEmpty {
-            if data.count == 1 && centerWithOneElement {
-                let w = collectionView.frame.size.width
-                let h = collectionView.frame.size.height
-                let size = cellSize ?? kDEFAULT_CELL_SIZE
-                let insetHorz = ((w - CGFloat(size.width)) / 4)
-                let insetVert = ((h - CGFloat(size.height)) / 2)
-                return UIEdgeInsets(top: insetVert, left: insetHorz, bottom: 0, right: insetHorz)
-            } else {
-                return edgeInsets ?? kDEFAULT_EDGE_INSETS
-            }
-        } else {
-            return edgeInsetsForEmpty ?? kDEFAULT_EDGE_INSETS
-        }
+        return insets? (section) ?? kDEFAULT_EDGE_INSETS
     }
     
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
@@ -147,8 +118,4 @@ public class RxCollectionView: NSObject,
 struct RxCell  {
     var identifier: String?
     var customise: ((IndexPath, UICollectionViewCell, Any) -> Void)?
-}
-
-public class CellEmptyModel {
-    // 
 }

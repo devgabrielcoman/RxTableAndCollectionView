@@ -20,7 +20,6 @@ public class RxTableView: NSObject,
     var reachEnd: (() -> Void)?
     
     private var data: [Any] = []
-    private var isEmpty = false
     
     override init () {
         // do nothing
@@ -36,6 +35,8 @@ public class RxTableView: NSObject,
     
     public func bind (toTable table: UITableView) -> RxTableView {
         self.table = table
+        self.table?.estimatedRowHeight = kDEFAULT_ROW_HEIGHT
+        self.table?.rowHeight = UITableViewAutomaticDimension
         return self
     }
     
@@ -47,11 +48,6 @@ public class RxTableView: NSObject,
         self.data = data.filter { element -> Bool in
             let key = String(describing: type(of: element))
             return self.modelToRow[key] != nil
-        }
-        
-        if self.data.count == 0, let _ = modelToRow["RowEmptyModel"] {
-            self.data = [RowEmptyModel()]
-            self.isEmpty = true
         }
         
         self.table?.reloadData()
@@ -66,23 +62,12 @@ public class RxTableView: NSObject,
     }
     
     public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let item = data[indexPath.row]
+        let key = String(describing: type(of: item))
+        let row = modelToRow [key]
+        let height = row?.height ?? kDEFAULT_ROW_HEIGHT
         
-        if !isEmpty {
-            if estimatedRowHeight != nil {
-                return UITableViewAutomaticDimension
-            }
-            else {
-                
-                let item = data[indexPath.row]
-                let key = String(describing: type(of: item))
-                let row = modelToRow [key]
-                let height = row?.height ?? kDEFAULT_ROW_HEIGHT
-                
-                return height
-            }
-        } else {
-            return tableView.frame.size.height
-        }
+        return height
     }
     
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -140,8 +125,4 @@ struct RxRow  {
     var height: CGFloat?
     var customise: ((IndexPath, UITableViewCell, Any) -> Void)?
     var canEdit: Bool = false
-}
-
-public class RowEmptyModel {
-    //
 }
