@@ -15,6 +15,8 @@ public class RxTableView: NSObject,
     var estimatedRowHeight: CGFloat?
     var modelToRow: [String : RxRow] = [:]
     var clicks: [String : (IndexPath, Any) -> Void] = [:]
+    var modelToCanEdit: [String: (IndexPath, Any) -> Bool] = [:]
+    var modelToCommitEdit: [String: (IndexPath, UITableViewCellEditingStyle, Any) -> Void] = [:]
     var reachEnd: (() -> Void)?
     
     private var data: [Any] = []
@@ -118,12 +120,26 @@ public class RxTableView: NSObject,
         }
     }
     
+    public func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        let item = data[indexPath.row]
+        let key = String(describing: type(of: item))
+        let canEdit = modelToCanEdit[key]
+        return (canEdit? (indexPath, item)) ?? false
+    }
+    
+    public func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        let item = data[indexPath.row]
+        let key = String(describing: type(of: item))
+        let commit = modelToCommitEdit[key]
+        commit? (indexPath, editingStyle, item)
+    }
 }
 
 struct RxRow  {
     var identifier: String?
     var height: CGFloat?
     var customise: ((IndexPath, UITableViewCell, Any) -> Void)?
+    var canEdit: Bool = false
 }
 
 public class RowEmptyModel {
