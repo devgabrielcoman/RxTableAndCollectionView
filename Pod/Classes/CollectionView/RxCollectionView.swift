@@ -70,7 +70,7 @@ public class RxCollectionView: NSObject,
         let customise = row?.customise
         
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellId, for: indexPath)
-        customise? (indexPath, cell, item)
+        customise? (indexPath, cell, item, data.count)
         
         return cell
     }
@@ -117,5 +117,5 @@ public class RxCollectionView: NSObject,
 
 struct RxCell  {
     var identifier: String?
-    var customise: ((IndexPath, UICollectionViewCell, Any) -> Void)?
+    var customise: ((IndexPath, UICollectionViewCell, Any, Int) -> Void)?
 }

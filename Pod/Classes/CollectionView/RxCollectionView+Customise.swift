@@ -3,7 +3,7 @@ import UIKit
 public extension RxCollectionView {
     
     public func customise <Cell: UICollectionViewCell, Model> (cellForReuseIdentifier identifier: String,
-                                                                _ callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
+                                                                _ callback: @escaping (IndexPath, Cell, Model, Int) -> Void) -> RxCollectionView {
         
         return customise(cellForReuseIdentifier: identifier,
                          withNibName: nil,
@@ -14,7 +14,7 @@ public extension RxCollectionView {
     
     public func customise <Cell: UICollectionViewCell, Model> (cellForReuseIdentifier identifier: String,
                                                                 withNibName nibName: String,
-                                                                _ callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
+                                                                _ callback: @escaping (IndexPath, Cell, Model, Int) -> Void) -> RxCollectionView {
         
         return customise(cellForReuseIdentifier: identifier,
                          withNibName: nibName,
@@ -27,7 +27,7 @@ public extension RxCollectionView {
                                                         withNibName nibName: String?,
                                                         andType cellType: Cell.Type,
                                                         representedByModelOfType modelType: Model.Type,
-                                                        customisedBy callback: @escaping (IndexPath, Cell, Model) -> Void) -> RxCollectionView {
+                                                        customisedBy callback: @escaping (IndexPath, Cell, Model, Int) -> Void) -> RxCollectionView {
         
         if let nib = nibName {
             collectionView?.register(UINib(nibName: nib, bundle: nil), forCellWithReuseIdentifier: identifier)
@@ -35,9 +35,9 @@ public extension RxCollectionView {
         
         var row = RxCell()
         row.identifier = identifier
-        row.customise = { i, cell, model in
+        row.customise = { i, cell, model, total in
             if let c = cell as? Cell, let m = model as? Model  {
-                callback (i, c, m)
+                callback (i, c, m, total)
             }
         }
         

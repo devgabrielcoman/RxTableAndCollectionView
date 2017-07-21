@@ -3,7 +3,7 @@ import UIKit
 public extension RxTableView {
     
     public func customise <Row: UITableViewCell, Model> (rowForReuseIdentifier identifier: String,
-                                                         _ callback: @escaping (IndexPath, Row, Model) -> Void) -> RxTableView {
+                                                         _ callback: @escaping (IndexPath, Row, Model, Int) -> Void) -> RxTableView {
         
         return customise(rowForReuseIdentifier: identifier,
                          withNibName: nil,
@@ -15,7 +15,7 @@ public extension RxTableView {
     
     public func customise <Row: UITableViewCell, Model> (rowForReuseIdentifier identifier: String,
                                                          andHeight height: CGFloat?,
-                                                         _ callback: @escaping (IndexPath, Row, Model) -> Void) -> RxTableView {
+                                                         _ callback: @escaping (IndexPath, Row, Model, Int) -> Void) -> RxTableView {
         
         return customise(rowForReuseIdentifier: identifier,
                          withNibName: nil,
@@ -27,7 +27,7 @@ public extension RxTableView {
     
     public func customise <Row: UITableViewCell, Model> (rowForReuseIdentifier identifier: String,
                                                          withNibName nibName: String?,
-                                                         _ callback: @escaping (IndexPath, Row, Model) -> Void) -> RxTableView {
+                                                         _ callback: @escaping (IndexPath, Row, Model, Int) -> Void) -> RxTableView {
         
         return customise(rowForReuseIdentifier: identifier,
                          withNibName: nibName,
@@ -40,7 +40,7 @@ public extension RxTableView {
     public func customise <Row: UITableViewCell, Model> (rowForReuseIdentifier identifier: String,
                                                          withNibName nibName: String?,
                                                          andHeight height: CGFloat?,
-                                                         _ callback: @escaping (IndexPath, Row, Model) -> Void) -> RxTableView {
+                                                         _ callback: @escaping (IndexPath, Row, Model, Int) -> Void) -> RxTableView {
         
         return customise(rowForReuseIdentifier: identifier,
                          withNibName: nibName,
@@ -55,7 +55,7 @@ public extension RxTableView {
                                                   andType rowType: Row.Type,
                                                   andHeight height: CGFloat?,
                                                   representedByModelOfType modelType: Model.Type,
-                                                  customisedBy callback: @escaping (IndexPath, Row, Model) -> Void) -> RxTableView {
+                                                  customisedBy callback: @escaping (IndexPath, Row, Model, Int) -> Void) -> RxTableView {
         
         if let nib = nibName {
             table?.register(UINib(nibName: nib, bundle: nil), forCellReuseIdentifier: identifier)
@@ -64,9 +64,9 @@ public extension RxTableView {
         var row = RxRow()
         row.identifier = identifier
         row.height = height ?? (estimatedRowHeight ?? kDEFAULT_ROW_HEIGHT)
-        row.customise = { i, cell, model in
+        row.customise = { i, cell, model, count in
             if let c = cell as? Row, let m = model as? Model  {
-                callback (i, c, m)
+                callback (i, c, m, count)
             }
         }
         

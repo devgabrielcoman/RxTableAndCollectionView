@@ -80,7 +80,7 @@ public class RxTableView: NSObject,
         let customise = row?.customise
         
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
-        customise? (indexPath, cell, item)
+        customise? (indexPath, cell, item, data.count)
         
         return cell
     }
@@ -123,6 +123,6 @@ public class RxTableView: NSObject,
 struct RxRow  {
     var identifier: String?
     var height: CGFloat?
-    var customise: ((IndexPath, UITableViewCell, Any) -> Void)?
+    var customise: ((IndexPath, UITableViewCell, Any, Int) -> Void)?
     var canEdit: Bool = false
 }
